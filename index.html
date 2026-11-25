@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Емтихан билеті — HTML, CSS, JavaScript</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение шрифта Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        /* Стили для холста рисования */
+        #schemeCanvas {
+            touch-action: none; /* Отключаем прокрутку страницы при рисовании пальцем */
+            cursor: crosshair;
+            background-color: #ffffff;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .tool-btn.active {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+        }
+        .color-btn.active {
+            transform: scale(1.18);
+            box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb;
+        }
+        /* Плавная анимация появления экранов */
+        .fade-in {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Верхняя шапка приложения -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    &lt;/&gt;
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+                        Емтихан: HTML, CSS және JavaScript
+                    </h1>
+                    <p class="text-xs text-slate-500">Веб-әзірлеудің базалық курсы • 20 билет</p>
+                </div>
+            </div>
+            <div id="studentBadge" class="hidden items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl text-xs sm:text-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span id="badgeName" class="font-semibold text-slate-800"></span>
+                <span class="text-slate-400">|</span>
+                <span id="badgeCourse" class="text-slate-600 font-medium"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контейнер -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10">
+
+        <!-- Уведомление (Toast) вместо alert() -->
+        <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-3 transition-all">
+            <span id="toastIcon" class="text-amber-400 text-lg">⚠️</span>
+            <p id="toastMessage" class="text-sm font-medium"></p>
+        </div>
+
+        <!-- ЭКРАН 1: Ввод данных студента -->
+        <section id="loginSection" class="max-w-lg mx-auto bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 fade-in">
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold tracking-wide uppercase mb-2">
+                    Емтиханға тіркелу
+                </span>
+                <h2 class="text-2xl font-bold text-slate-900">Студенттің деректері</h2>
+                <p class="text-sm text-slate-500 mt-1">
+                    Жүйе сізге кездейсоқ түрде емтихан билетін таңдауы үшін төмендегі өрістерді толтырыңыз.
+                </p>
+            </div>
+
+            <form id="startForm" class="space-y-5" novalidate>
+                <div>
+                    <label for="lastName" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Тегі <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="lastName" placeholder="Мысалы: Ахметов"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                <div>
+                    <label for="firstName" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Аты <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="firstName" placeholder="Мысалы: Әлихан"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                <div>
+                    <label for="courseInput" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Курс / Топ <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="courseInput" placeholder="Мысалы: 1 курс, АЖ-24"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-base shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+                        <span>🎲 Кездейсоқ билет алу</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 pt-5 border-t border-slate-100 text-center text-xs text-slate-400">
+                Тапсырманы орындағаннан кейін жауаптар мен схема оқытушының <strong>nta1971@mail.ru</strong> поштасына жіберіледі
+            </div>
+        </section>
+
+        <!-- ЭКРАН 2: Билет и выполнение заданий -->
+        <section id="examSection" class="hidden space-y-6 fade-in">
+
+            <!-- Карточка заголовка билета -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 sm:p-7 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/15 text-white text-xs font-semibold uppercase tracking-wider mb-2">
+                        Кездейсоқ таңдау аяқталды
+                    </div>
+                    <h2 id="ticketTitle" class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        БИЛЕТ №1
+                    </h2>
+                    <p class="text-blue-100 text-sm mt-1">
+                        Екі теориялық сұраққа жауап беріп, 3-тапсырмада макет-схеманы сызыңыз.
+                    </p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-sm">
+                    <div class="text-blue-200 text-xs">Студент:</div>
+                    <div id="cardStudentName" class="font-bold text-white"></div>
+                    <div id="cardStudentCourse" class="text-blue-100 text-xs mt-0.5"></div>
+                </div>
+            </div>
+
+            <!-- Вопрос №1 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
+                <div class="flex items-start gap-3 mb-4">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm">
+                        1
+                    </span>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">№1 теориялық сұрақ</span>
+                        <h3 id="q1Text" class="text-base sm:text-lg font-bold text-slate-900 mt-0.5 leading-snug"></h3>
+                    </div>
+                </div>
+                <label for="answer1" class="block text-xs font-semibold text-slate-500 mb-2">1-сұраққа сіздің жауабыңыз:</label>
+                <textarea id="answer1" rows="5" placeholder="Толық жауабыңызды осында жазыңыз..."
+                    class="w-full p-4 rounded-xl border border-slate-300 text-slate-800 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+            </div>
+
+            <!-- Вопрос №2 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
+                <div class="flex items-start gap-3 mb-4">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">
+                        2
+                    </span>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">№2 теориялық сұрақ</span>
+                        <h3 id="q2Text" class="text-base sm:text-lg font-bold text-slate-900 mt-0.5 leading-snug"></h3>
+                    </div>
+                </div>
+                <label for="answer2" class="block text-xs font-semibold text-slate-500 mb-2">2-сұраққа сіздің жауабыңыз:</label>
+                <textarea id="answer2" rows="5" placeholder="Толық жауабыңызды осында жазыңыз..."
+                    class="w-full p-4 rounded-xl border border-slate-300 text-slate-800 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></textarea>
+            </div>
+
+            <!-- Вопрос №3: Графический редактор для рисования схемы + текстовый алгоритм -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
+                <div class="flex items-start gap-3 mb-4">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">
+                        3
+                    </span>
+                    <div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Практикалық тапсырма • Схема және алгоритм</span>
+                        <h3 id="q3Text" class="text-base sm:text-lg font-bold text-slate-900 mt-0.5 leading-snug"></h3>
+                    </div>
+                </div>
+
+                <!-- Панель инструментов для рисования схемы -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <!-- Инструменты -->
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <button type="button" data-tool="rect" class="tool-btn active px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition" title="Блок / контейнер сызу">
+                            <span>▭</span> <span>Блок (div)</span>
+                        </button>
+                        <button type="button" data-tool="pen" class="tool-btn px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition" title="Қарындаш">
+                            <span>✏️</span> <span>Қарындаш</span>
+                        </button>
+                        <button type="button" data-tool="line" class="tool-btn px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition" title="Түзу сызық">
+                            <span>╱</span> <span>Сызық</span>
+                        </button>
+                        <button type="button" data-tool="text" class="tool-btn px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition" title="Схемаға жазу қосу">
+                            <span>T</span> <span>Мәтін</span>
+                        </button>
+                        <button type="button" data-tool="eraser" class="tool-btn px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition" title="Өшіргіш">
+                            <span>🧹</span> <span>Өшіргіш</span>
+                        </button>
+                    </div>
+
+                    <!-- Цвета и действия -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-1.5" aria-label="Түс таңдау">
+                            <button type="button" data-color="#0f172a" class="color-btn active w-6 h-6 rounded-full bg-slate-900 border border-white transition" title="Қара"></button>
+                            <button type="button" data-color="#2563eb" class="color-btn w-6 h-6 rounded-full bg-blue-600 border border-white transition" title="Көк"></button>
+                            <button type="button" data-color="#16a34a" class="color-btn w-6 h-6 rounded-full bg-green-600 border border-white transition" title="Жасыл"></button>
+                            <button type="button" data-color="#dc2626" class="color-btn w-6 h-6 rounded-full bg-red-600 border border-white transition" title="Қызыл"></button>
+                            <button type="button" data-color="#ea580c" class="color-btn w-6 h-6 rounded-full bg-orange-600 border border-white transition" title="Қызғылт сары"></button>
+                        </div>
+
+                        <div class="h-5 w-px bg-slate-300 hidden sm:block"></div>
+
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" id="undoBtn" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium transition">
+                                ↩ Болдырмау
+                            </button>
+                            <button type="button" id="clearCanvasBtn" class="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium transition">
+                                🗑 Тазалау
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Подсказка для инструмента Текст -->
+                <div id="textToolBar" class="hidden mb-3 p-3 rounded-xl bg-blue-50 border border-blue-200 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-blue-800">Схемаға арналған жазу:</span>
+                    <input type="text" id="canvasTextInput" placeholder="Мысалы: <header> Сайттың жоғарғы бөлігі"
+                        class="flex-grow min-w-[200px] px-3 py-1.5 rounded-lg border border-blue-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="text-xs text-blue-600">Мәтінді енгізіп, кенептің қажетті жерін басыңыз</span>
+                </div>
+
+                <!-- Контейнер холста -->
+                <div class="relative w-full rounded-xl border-2 border-dashed border-slate-300 overflow-hidden bg-white">
+                    <canvas id="schemeCanvas" class="w-full block h-[340px] sm:h-[420px]"></canvas>
+                </div>
+                <p class="text-xs text-slate-400 mt-2">
+                    Кеңес: беттің қаңқасын (жоғарғы бөлік, мәзір, карточкалар, төменгі бөлік) сызу үшін <strong>«Блок (div)»</strong> құралын, ал тегтерді жазу үшін <strong>«Мәтін»</strong> құралын пайдаланыңыз.
+                </p>
+
+                <!-- Поле для алгоритма / пояснения к схеме -->
+                <div class="mt-5">
+                    <label for="answer3" class="block text-xs font-semibold text-slate-500 mb-2">
+                        3-тапсырманы құру алгоритмі мен сипаттамасы:
+                    </label>
+                    <textarea id="answer3" rows="4" placeholder="Веб-парақшаны құрудың қадамдық алгоритмін сипаттаңыз немесе сызылған схемаға түсініктеме/код жазыңыз..."
+                        class="w-full p-4 rounded-xl border border-slate-300 text-slate-800 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"></textarea>
+                </div>
+            </div>
+
+            <!-- Кнопка отправки работы -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-center sm:text-left">
+                    <h4 class="font-bold text-slate-900 text-base">Билет тапсырмаларын орындап болдыңыз ба?</h4>
+                    <p class="text-xs sm:text-sm text-slate-500">
+                        Жұмыс оқытушының электрондық поштасына жіберуге дайындалады: <span class="font-semibold text-blue-600">nta1971@mail.ru</span>
+                    </p>
+                </div>
+                <button type="button" id="submitExamBtn"
+                    class="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-base shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2">
+                    <span>✉️ nta1971@mail.ru поштасына жіберу</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно успешной подготовки и отправки письма -->
+    <div id="sendModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 fade-in my-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                        ✓
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Жауаптар жіберуге дайын!</h3>
+                        <p class="text-xs text-slate-500">Алушы: <strong>nta1971@mail.ru</strong></p>
+                    </div>
+                </div>
+                <button type="button" id="closeModalBtn" class="text-slate-400 hover:text-slate-700 text-2xl leading-none px-2">
+                    &times;
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-700">
+                <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm leading-relaxed">
+                    <strong>Маңызды:</strong> Сіз сызған схема файлы (<span id="downloadedFileName" class="font-mono font-semibold underline">schema.png</span>) құрылғыңызға автоматты түрде жүктелді. Хатты жібермес бұрын осы файлды хатқа тіркеңіз!
+                </div>
+
+                <!-- Кнопки отправки -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a id="mailtoLink" href="#"
+                        class="py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-center text-sm shadow transition flex items-center justify-center gap-2">
+                        <span>📧 Поштаны ашу (Mailto)</span>
+                    </a>
+                    <a id="mailRuWebLink" href="#" target="_blank" rel="noopener noreferrer"
+                        class="py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-center text-sm shadow transition flex items-center justify-center gap-2">
+                        <span>🌐 Mail.ru арқылы жіберу</span>
+                    </a>
+                </div>
+
+                <!-- Дополнительные кнопки копирования и повторного скачивания -->
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button type="button" id="copyReportBtn"
+                        class="flex-1 py-2.5 px-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs sm:text-sm transition">
+                        📋 Жауаптар мәтінін көшіру
+                    </button>
+                    <button type="button" id="downloadAgainBtn"
+                        class="flex-1 py-2.5 px-3 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium text-xs sm:text-sm transition">
+                        🖼 Схеманы жүктеу (PNG)
+                    </button>
+                </div>
+
+                <!-- Предпросмотр текста письма -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Құрастырылған хат мәтіні:</label>
+                    <textarea id="finalReportPreview" readonly rows="6"
+                        class="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 focus:outline-none"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // БАЗА ДАННЫХ: 20 ЭКЗАМЕНАЦИОННЫХ БИЛЕТОВ (НАЧАЛЬНЫЕ ТЕМЫ)
+        // =========================================================================
+        const TICKETS = [
+            {
+                number: 1,
+                q1: "HTML құжатының негізгі құрылымы (<!DOCTYPE html>, <html>, <head>, <body> тегтерінің қызметі).",
+                q2: "CSS стильдерін HTML құжатына қосудың үш тәсілі (Inline, Internal, External).",
+                q3: "«Интернет-дүкен (Магазин)» веб-парағының макетін (құрылымдық схемасын) сызыңыз (жоғарғы мәзір, тауарлар каталогы, төменгі бөлік) және негізгі HTML қаңқасын құру алгоритмін жазыңыз."
+            },
+            {
+                number: 2,
+                q1: "HTML-дегі тақырыптар (<h1>–<h6>) және мәтінді пішімдеу тегтері (<p>, <b>, <i>, <br>, <hr>).",
+                q2: "CSS-тегі негізгі селекторлар (тег селекторы, класс .class, идентификатор #id).",
+                q3: "«Дәріхана (Аптека)» веб-парағының макетін сызыңыз (іздеу жолағы, дәрі-дәрмектер тізімі, байланыс ақпараты) және бөлімдерді CSS селекторлары арқылы безендіру ретін сипаттаңыз."
+            },
+            {
+                number: 3,
+                q1: "HTML-дегі тізім түрлері: маркерленген (<ul>), нөмірленген (<ol>) тізімдер және <li> элементі.",
+                q2: "CSS-тегі қорап моделі (Box Model): margin, padding, border және content ұғымдары.",
+                q3: "«Мейрамхана / Кафе мәзірі» веб-парағының макетін сызыңыз (тағам санаттарының тізімі, бағалар блогы) және блоктар арасындағы сыртқы (margin) мен ішкі (padding) шегіністерді орналастыру схемасын көрсетіңіз."
+            },
+            {
+                number: 4,
+                q1: "Гиперсілтемелер (<a> тегі, href және target атрибуттары) мен суреттерді (<img> тегі, src және alt атрибуттары) кірістіру.",
+                q2: "JavaScript тілін HTML бетіне қосу тәсілдері (<script> тегінің орналасуы).",
+                q3: "«Туристік агенттік» веб-парағының макетін сызыңыз (демалыс орындарының суреттері, турға сілтемелер) және «Турды брондау» батырмасын басқанда хабарлама (alert) шығару алгоритмін жазыңыз."
+            },
+            {
+                number: 5,
+                q1: "HTML-де кесте құру (<table>, <tr>, <td>, <th> тегтері).",
+                q2: "CSS-те түстерді беру тәсілдері (түс атаулары, HEX, RGB) және фонды (background-color, background-image) баптау.",
+                q3: "«Теміржол / Әуе билеттері кестесі» веб-парағының макетін сызыңыз (рейстер кестесі, бағыттар мен уақыты) және кесте мен фон түстерін CSS арқылы үйлестіру схемасын көрсетіңіз."
+            },
+            {
+                number: 6,
+                q1: "HTML формалары туралы түсінік (<form>, <input>, <label>, <button> тегтері).",
+                q2: "JavaScript-тегі айнымалылар (let, const, var) және оларды жариялау ережелері.",
+                q3: "«Автосалон» веб-парағының макетін сызыңыз (көліктер витринасы және «Тест-драйвқа жазылу» формасы) және қолданушы енгізген деректерді айнымалыға сақтау алгоритмін жазыңыз."
+            },
+            {
+                number: 7,
+                q1: "Блоктық (block) және жолдық (inline) элементтердің айырмашылығы (<div> және <span> тегтері).",
+                q2: "JavaScript-тегі негізгі деректер типтері (String, Number, Boolean, Undefined, Null).",
+                q3: "«Жылжымайтын мүлік агенттігі» веб-парағының макетін сызыңыз (пәтер карточкалары, бағасы мен шаршы метрі) және <div> блоктарының орналасу схемасын көрсетіңіз."
+            },
+            {
+                number: 8,
+                q1: "HTML-дегі атрибуттар туралы түсінік және жиі қолданылатын атрибуттар (id, class, title, width, height).",
+                q2: "CSS-те қаріптерді баптау (font-family, font-size, font-weight, font-style).",
+                q3: "«Қалалық кітапхана» веб-парағының макетін сызыңыз (кітапхана атауы, кітаптар тізімі, жұмыс уақыты) және тақырыптар мен мәтін қаріптерін CSS арқылы безендіру ретін сипаттаңыз."
+            },
+            {
+                number: 9,
+                q1: "HTML5-тегі негізгі құрылымдық (семантикалық) тегтер (<header>, <nav>, <main>, <footer>).",
+                q2: "JavaScript-те ақпаратты экранға шығару әдістері (alert(), console.log(), document.write()).",
+                q3: "«Кинотеатр афишасы» веб-парағының макетін сызыңыз (жоғарғы бөлік <header>, фильм постерлері, төменгі бөлік <footer>) және парақша ашылғанда alert() арқылы сәлемдесу хабарламасын шығару алгоритмін жазыңыз."
+            },
+            {
+                number: 10,
+                q1: "CSS-те мәтінді теңестіру және безендіру қасиеттері (text-align, text-decoration, text-transform, line-height).",
+                q2: "JavaScript-тегі қолданушыдан дерек алу және растау терезелері (prompt(), confirm()).",
+                q3: "«Фитнес-клуб» веб-парағының макетін сызыңыз (клуб туралы ақпарат, абонемент түрлері) және prompt() терезесі арқылы қолданушының атын сұрап, сәлемдесу алгоритмін жазыңыз."
+            },
+            {
+                number: 11,
+                q1: "CSS-те жиектерді (рамка) баптау (border-width, border-style, border-color) және бұрыштарды дөңгелектеу (border-radius).",
+                q2: "JavaScript-тегі арифметикалық операторлар (+, -, *, /, %).",
+                q3: "«Тамақ жеткізу қызметі» веб-парағының макетін сызыңыз (тағам карточкалары, бағасы) және екі тағамның жалпы бағасын қосу (+) алгоритмін жазыңыз."
+            },
+            {
+                number: 12,
+                q1: "HTML формасындағы таңдау элементтері (type=\"radio\", type=\"checkbox\", <select>, <option>).",
+                q2: "JavaScript-те жолдарды (мәтіндерді) біріктіру (конкатенация, + операторы) және айнымалы мәндерін бірге шығару.",
+                q3: "«Тіс емханасы (Стоматология)» веб-парағының макетін сызыңыз (қызметтер тізімі және дәрігерге жазылу формасы) және емделушінің аты мен тегін біріктіріп экранға шығару алгоритмін жазыңыз."
+            },
+            {
+                number: 13,
+                q1: "CSS-те элементтердің ені мен биіктігін баптау (width, height) және бастапқы өлшем бірліктері (px және %).",
+                q2: "JavaScript-тегі меншіктеу операторлары (=, +=, -=, *=, /=).",
+                q3: "«Қонақ үй (Отель)» веб-парағының макетін сызыңыз (басты баннер, бөлме түрлері мен бағалары) және бөлме бағасына қызмет көрсету ақысын қосу (+=) алгоритмін жазыңыз."
+            },
+            {
+                number: 14,
+                q1: "HTML-дегі комментарийлер (<!-- ... -->) және мәтінді қосымша пішімдеу тегтері (<pre>, <sub>, <sup>, <mark>).",
+                q2: "JavaScript-тегі салыстыру операторлары (==, ===, !=, >, <, >=, <=).",
+                q3: "«Сұлулық салоны» веб-парағының макетін сызыңыз (қызметтер прайсы және байланыс бөлімі) және екі қызметтің бағасын салыстыру (>, <) алгоритмін жазыңыз."
+            },
+            {
+                number: 15,
+                q1: "HTML-де кесте ұяшықтарын біріктіру (colspan және rowspan атрибуттары) және кесте тақырыбы (<caption>).",
+                q2: "JavaScript-тегі typeof операторы және деректер типін анықтау (сан мен жолдың айырмашылығы).",
+                q3: "«Онлайн оқу курсы» веб-парағының макетін сызыңыз (сабақтар кестесі, курс бағасы) және енгізілген мәліметтің типін (typeof) тексеру алгоритмін жазыңыз."
+            },
+            {
+                number: 16,
+                q1: "CSS-те сілтемелер мен тізімдерді безендіру (list-style-type, text-decoration: none, :hover күйі).",
+                q2: "JavaScript-тегі қарапайым шартты оператор (if және else құрылымы).",
+                q3: "«Зоомагазин (Жануарлар дүкені)» веб-парағының макетін сызыңыз (жануарларға арналған тауарлар тізімі, мәзір) және сатып алу сомасы 5000 теңгеден асса жеңілдік бар екенін хабарлау (if/else) алгоритмін жазыңыз."
+            },
+            {
+                number: 17,
+                q1: "CSS-тегі комментарийлер (/* ... */) және селекторларды топтастыру (мысалы: h1, h2, p).",
+                q2: "JavaScript-тегі комментарийлер (//, /* ... */) және айнымалыларды атау ережелері (camelCase стилі).",
+                q3: "«Жаңалықтар порталы» веб-парағының макетін сызыңыз (басты жаңалық тақырыбы, қысқаша мәтіндер, айдарлар) және жаңалықтар саны мен тақырыбын айнымалыларға сақтау алгоритмін жазыңыз."
+            },
+            {
+                number: 18,
+                q1: "HTML формасындағы көп жолды мәтін өрісі (<textarea>) және өріс атрибуттары (placeholder, required, value).",
+                q2: "JavaScript-те деректер типін түрлендіру негіздері (Number(), String() функциялары).",
+                q3: "«Құрылыс материалдары дүкені» веб-парағының макетін сызыңыз (тауарлар тізімі және тапсырыс қалдыру формасы) және prompt() арқылы алынған тауар санын санға (Number()) айналдырып есептеу алгоритмін жазыңыз."
+            },
+            {
+                number: 19,
+                q1: "HTML-дегі суреттер мен сілтемелердегі файл жолдары (абсолютті және салыстырмалы жолдар).",
+                q2: "CSS-те блокты парақ ортасына орналастыру (margin: 0 auto) және display қасиетінің бастапқы мәндері (block, inline, none).",
+                q3: "«Автомектеп» веб-парағының макетін сызыңыз (орталықтандырылған негізгі блок, оқу санаттары, көлік суреттері) және блоктарды CSS арқылы ортаға теңестіру схемасын көрсетіңіз."
+            },
+            {
+                number: 20,
+                q1: "Веб-бетті құрудағы HTML, CSS және JavaScript технологияларының қызметі мен өзара байланысы.",
+                q2: "HTML құжатының <head> бөліміндегі негізгі тегтер (<title>, <meta charset=\"UTF-8\">, <link>, <style>).",
+                q3: "«Гүлдер дүкені» веб-парағының макетін сызыңыз (дүкен атауы, гүл шоқтарының суреттері мен бағалары, тапсырыс формасы) және парақша құрудың толық қадамдық алгоритмін (HTML -> CSS -> JS) жазыңыз."
+            }
+        ];
+
+        // =========================================================================
+        // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+        // =========================================================================
+        const state = {
+            student: {
+                lastName: "",
+                firstName: "",
+                course: ""
+            },
+            currentTicket: null,
+            tool: "rect",        // 'rect' | 'pen' | 'line' | 'text' | 'eraser'
+            color: "#0f172a",
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
+            snapshot: null,      // Снимок холста перед началом рисования фигуры
+            history: []          // История для кнопки «Отменить»
+        };
+
+        const TEACHER_EMAIL = "nta1971@mail.ru";
+
+        // =========================================================================
+        // УВЕДОМЛЕНИЯ (TOAST)
+        // =========================================================================
+        let toastTimer = null;
+        function showToast(message, isSuccess = false) {
+            const box = document.getElementById("toastBox");
+            const msg = document.getElementById("toastMessage");
+            const icon = document.getElementById("toastIcon");
+
+            msg.textContent = message;
+            icon.textContent = isSuccess ? "✅" : "⚠️";
+            box.classList.remove("hidden");
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add("hidden");
+            }, 3500);
+        }
+
+        // =========================================================================
+        // ЛОГИКА РЕГИСТРАЦИИ И ВЫДАЧИ СЛУЧАЙНОГО БИЛЕТА
+        // =========================================================================
+        document.getElementById("startForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const lastName = document.getElementById("lastName").value.trim();
+            const firstName = document.getElementById("firstName").value.trim();
+            const course = document.getElementById("courseInput").value.trim();
+
+            if (!lastName || !firstName || !course) {
+                showToast("Тегіңізді, Атыңызды және Курсыңызды толтырыңыз!");
+                return;
+            }
+
+            state.student = { lastName, firstName, course };
+
+            // Случайный выбор одного из 20 билетов
+            const randomIndex = Math.floor(Math.random() * TICKETS.length);
+            state.currentTicket = TICKETS[randomIndex];
+
+            // Заполнение интерфейса данными студента и билета
+            const fullName = `${lastName} ${firstName}`;
+            document.getElementById("badgeName").textContent = fullName;
+            document.getElementById("badgeCourse").textContent = course;
+            document.getElementById("studentBadge").classList.remove("hidden");
+            document.getElementById("studentBadge").classList.add("flex");
+
+            document.getElementById("cardStudentName").textContent = fullName;
+            document.getElementById("cardStudentCourse").textContent = `Курс / Топ: ${course}`;
+
+            document.getElementById("ticketTitle").textContent = `БИЛЕТ №${state.currentTicket.number}`;
+            document.getElementById("q1Text").textContent = state.currentTicket.q1;
+            document.getElementById("q2Text").textContent = state.currentTicket.q2;
+            document.getElementById("q3Text").textContent = state.currentTicket.q3;
+
+            // Переключение экранов
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("examSection").classList.remove("hidden");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            // Инициализация холста после отображения секции
+            initCanvas();
+        });
+
+        // =========================================================================
+        // ГРАФИЧЕСКИЙ РЕДАКТОР ДЛЯ РИСОВАНИЯ СХЕМЫ (ВОПРОС №3)
+        // =========================================================================
+        const canvas = document.getElementById("schemeCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function initCanvas() {
+            resizeCanvas(false);
+            saveHistory();
+        }
+
+        // Адаптация размеров холста под ширину контейнера без потери рисунка
+        function resizeCanvas(preserveContent = true) {
+            let tempCanvas = null;
+            if (preserveContent && canvas.width > 0 && canvas.height > 0) {
+                tempCanvas = document.createElement("canvas");
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                tempCanvas.getContext("2d").drawImage(canvas, 0, 0);
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            if (tempCanvas) {
+                ctx.drawImage(tempCanvas, 0, 0);
+            }
+        }
+
+        window.addEventListener("resize", () => {
+            if (!document.getElementById("examSection").classList.contains("hidden")) {
+                resizeCanvas(true);
+            }
+        });
+
+        function saveHistory() {
+            if (state.history.length > 25) {
+                state.history.shift();
+            }
+            state.history.push(canvas.toDataURL());
+        }
+
+        function undoCanvas() {
+            if (state.history.length <= 1) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                state.history = [canvas.toDataURL()];
+                return;
+            }
+            state.history.pop();
+            const prevData = state.history[state.history.length - 1];
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = prevData;
+        }
+
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            const pos = getPointerPos(e);
+
+            // Если выбран инструмент «Текст», ставим подпись по клику
+            if (state.tool === "text") {
+                const textVal = document.getElementById("canvasTextInput").value.trim();
+                if (!textVal) {
+                    showToast("Кенептің үстіндегі өріске жазу мәтінін енгізіңіз!");
+                    document.getElementById("canvasTextInput").focus();
+                    return;
+                }
+                ctx.fillStyle = state.color;
+                ctx.font = "600 15px Inter, sans-serif";
+                ctx.fillText(textVal, pos.x, pos.y);
+                saveHistory();
+                return;
+            }
+
+            state.isDrawing = true;
+            state.startX = pos.x;
+            state.startY = pos.y;
+            state.snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            if (state.tool === "pen" || state.tool === "eraser") {
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+        }
+
+        function handleMove(e) {
+            if (!state.isDrawing) return;
+            if (e.cancelable) e.preventDefault();
+
+            const pos = getPointerPos(e);
+
+            if (state.tool === "pen") {
+                ctx.globalCompositeOperation = "source-over";
+                ctx.strokeStyle = state.color;
+                ctx.lineWidth = 2.5;
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            } else if (state.tool === "eraser") {
+                ctx.globalCompositeOperation = "destination-out";
+                ctx.lineWidth = 22;
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                ctx.globalCompositeOperation = "source-over";
+            } else if (state.tool === "rect") {
+                ctx.putImageData(state.snapshot, 0, 0);
+                ctx.globalCompositeOperation = "source-over";
+                ctx.strokeStyle = state.color;
+                ctx.lineWidth = 2.5;
+                const w = pos.x - state.startX;
+                const h = pos.y - state.startY;
+                ctx.strokeRect(state.startX, state.startY, w, h);
+            } else if (state.tool === "line") {
+                ctx.putImageData(state.snapshot, 0, 0);
+                ctx.globalCompositeOperation = "source-over";
+                ctx.strokeStyle = state.color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(state.startX, state.startY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            }
+        }
+
+        function handleEnd() {
+            if (!state.isDrawing) return;
+            state.isDrawing = false;
+            ctx.globalCompositeOperation = "source-over";
+            saveHistory();
+        }
+
+        // События мыши
+        canvas.addEventListener("mousedown", handleStart);
+        canvas.addEventListener("mousemove", handleMove);
+        window.addEventListener("mouseup", handleEnd);
+
+        // События сенсорного экрана (телефоны и планшеты)
+        canvas.addEventListener("touchstart", handleStart, { passive: false });
+        canvas.addEventListener("touchmove", handleMove, { passive: false });
+        window.addEventListener("touchend", handleEnd);
+
+        // Переключение инструментов
+        document.querySelectorAll(".tool-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                state.tool = btn.dataset.tool;
+
+                const textBar = document.getElementById("textToolBar");
+                if (state.tool === "text") {
+                    textBar.classList.remove("hidden");
+                    document.getElementById("canvasTextInput").focus();
+                } else {
+                    textBar.classList.add("hidden");
+                }
+            });
+        });
+
+        // Переключение цветов
+        document.querySelectorAll(".color-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                state.color = btn.dataset.color;
+            });
+        });
+
+        // Кнопки Отменить и Очистить
+        document.getElementById("undoBtn").addEventListener("click", undoCanvas);
+        document.getElementById("clearCanvasBtn").addEventListener("click", () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            saveHistory();
+            showToast("Кенеп тазартылды", true);
+        });
+
+        // Экспорт схемы с белым фоном (чтобы в письме картинка не была прозрачной)
+        function exportSchemeImage() {
+            const exportCanvas = document.createElement("canvas");
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const eCtx = exportCanvas.getContext("2d");
+
+            // Белый фон
+            eCtx.fillStyle = "#ffffff";
+            eCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+            // Подпись студента и номера билета в углу схемы
+            eCtx.fillStyle = "#64748b";
+            eCtx.font = "12px Inter, sans-serif";
+            eCtx.fillText(
+                `Студент: ${state.student.lastName} ${state.student.firstName} (${state.student.course}) | Билет №${state.currentTicket.number}`,
+                14,
+                22
+            );
+
+            // Рисунок студента
+            eCtx.drawImage(canvas, 0, 0);
+
+            return exportCanvas.toDataURL("image/png");
+        }
+
+        function triggerDownloadScheme(fileName) {
+            const dataUrl = exportSchemeImage();
+            const link = document.createElement("a");
+            link.download = fileName;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // =========================================================================
+        // ФОРМИРОВАНИЕ ОТЧЁТА И ОТПРАВКА НА nta1971@mail.ru
+        // =========================================================================
+        document.getElementById("submitExamBtn").addEventListener("click", () => {
+            const ans1 = document.getElementById("answer1").value.trim();
+            const ans2 = document.getElementById("answer2").value.trim();
+            const ans3 = document.getElementById("answer3").value.trim();
+
+            if (!ans1 && !ans2 && !ans3) {
+                showToast("Жібермес бұрын кем дегенде бір жауапты толтырыңыз!");
+                return;
+            }
+
+            const t = state.currentTicket;
+            const s = state.student;
+            const fileName = `Схема_${s.lastName}_Билет_${t.number}.png`;
+
+            // Формирование текста письма
+            const subject = `Емтихан HTML/CSS/JS — ${s.lastName} ${s.firstName} (${s.course}) — Билет №${t.number}`;
+            const bodyText = [
+                `ЕМТИХАН ЖҰМЫСЫ (HTML, CSS, JavaScript)`,
+                `==================================================`,
+                `Студент: ${s.lastName} ${s.firstName}`,
+                `Курс / Топ: ${s.course}`,
+                `Түскен билет: БИЛЕТ №${t.number}`,
+                `==================================================`,
+                ``,
+                `1. СҰРАҚ: ${t.q1}`,
+                `1-ЖАУАП:`,
+                `${ans1 || "(Жауап жазылмаған)"}`,
+                ``,
+                `--------------------------------------------------`,
+                `2. СҰРАҚ: ${t.q2}`,
+                `2-ЖАУАП:`,
+                `${ans2 || "(Жауап жазылмаған)"}`,
+                ``,
+                `--------------------------------------------------`,
+                `3. ПРАКТИКАЛЫҚ ТАПСЫРМА: ${t.q3}`,
+                `АЛГОРИТМ / СИПАТТАМА:`,
+                `${ans3 || "(Мәтіндік сипаттама жазылмаған)"}`,
+                ``,
+                `[Веб-парақша схемасы файл ретінде тіркелген: ${fileName}]`
+            ].join("\n");
+
+            // 1. Автоматически скачиваем файл схемы PNG
+            triggerDownloadScheme(fileName);
+
+            // 2. Настраиваем ссылки для отправки на nta1971@mail.ru
+            const encodedSubject = encodeURIComponent(subject);
+            const encodedBody = encodeURIComponent(bodyText);
+
+            const mailtoUrl = `mailto:${TEACHER_EMAIL}?subject=${encodedSubject}&body=${encodedBody}`;
+            const mailRuUrl = `https://e.mail.ru/compose/?to=${TEACHER_EMAIL}&subject=${encodedSubject}&body=${encodedBody}`;
+
+            document.getElementById("mailtoLink").href = mailtoUrl;
+            document.getElementById("mailRuWebLink").href = mailRuUrl;
+            document.getElementById("downloadedFileName").textContent = fileName;
+            document.getElementById("finalReportPreview").value = bodyText;
+
+            // Сохраняем имя файла для кнопки повторного скачивания
+            document.getElementById("downloadAgainBtn").onclick = () => {
+                triggerDownloadScheme(fileName);
+                showToast("Схема файлы қайта жүктелді", true);
+            };
+
+            // Открываем модальное окно с инструкцией и кнопками
+            document.getElementById("sendModal").classList.remove("hidden");
+
+            // Пытаемся сразу открыть почтовый клиент по умолчанию
+            window.location.href = mailtoUrl;
+        });
+
+        // Закрытие модального окна
+        document.getElementById("closeModalBtn").addEventListener("click", () => {
+            document.getElementById("sendModal").classList.add("hidden");
+        });
+
+        // Копирование текста отчёта в буфер обмена
+        document.getElementById("copyReportBtn").addEventListener("click", () => {
+            const preview = document.getElementById("finalReportPreview");
+            preview.select();
+            preview.setSelectionRange(0, 99999);
+            try {
+                document.execCommand("copy");
+                showToast("Жауаптар мәтіні алмасу буферіне көшірілді!", true);
+            } catch (err) {
+                showToast("Мәтінді қолмен белгілеп, Ctrl+C пернесін басыңыз");
+            }
+        });
+    </script>
+</body>
+</html>
